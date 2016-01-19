@@ -5,7 +5,11 @@ public class MissileBehaviour : MonoBehaviour {
 
     public float speed = 0.2f;
 
+    PlayerController playerController;
+
 	void Start () {
+
+        playerController = GameObject.FindGameObjectWithTag("GameController").GetComponent<PlayerController>();
 	}
 	
 	// Update is called once per frame
@@ -17,6 +21,7 @@ public class MissileBehaviour : MonoBehaviour {
     {
         if(coll.tag == "Enemy")
         {
+            playerController.addEnemyDeadRound(coll.GetComponent<EnemyMove>().getActualEnemyRound());
             Destroy(coll.gameObject);
             Destroy(gameObject);
         }

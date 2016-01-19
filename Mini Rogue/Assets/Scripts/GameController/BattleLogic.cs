@@ -5,7 +5,7 @@ public class BattleLogic : MonoBehaviour {
 
     enum RoundPhase
     {
-        steady,shooting,moving,evaluating,enemyMove
+        steady,shooting,moving,evaluating,enemyMove,endGame
     }
 
     RoundPhase actualRoundPhase;
@@ -19,28 +19,51 @@ public class BattleLogic : MonoBehaviour {
     public GameObject failedFireIcon;
 
     public GameObject doubleEnergyButton;
+    public GameObject fightButton;
     #endregion
 
 
     public float enemySpacing = 1.5f;
+
+    float odds = 30; // THIS HAVE TO CHANGE. GAMEPLAY IMPORTANT
 
     GameObject _player;
 
     Vector3 playerStartPosition;
     Vector3 enemyStartPosition;
 
+    PlayerController playerController;
+
     void Start() {
         actualRoundPhase = RoundPhase.steady;
+        playerController = GetComponent<PlayerController>();
     }
 
 
     void Update() {
 
-        print(actualRoundPhase);
         switch (actualRoundPhase)
         {
             case RoundPhase.steady:
                 {
+                    if(_player != null)
+                    {
+                        if (_player.GetComponent<PlayerInFightHandler>().collision && (playerController.actualEnergy <= 0 /* or actual HP <= 0*/))
+                        {
+                            GetComponent<ScenesManager>().actualSceneState = SceneState.GameOverScene;
+                            quitBattle();
+                        }
+                        else if ((_player.GetComponent<PlayerInFightHandler>().collision))
+                        {
+                            GetComponent<ScenesManager>().actualSceneState = SceneState.EvaluationScene;
+                            quitBattle();
+                        }else if(isEnemiesDestroyed())
+                        {
+                            playerController.convertTempEnergy();
+                            GetComponent<ScenesManager>().actualSceneState = SceneState.EvaluationScene;
+                            quitBattle();
+                        }
+                    }
                     return;
                 }
             case RoundPhase.evaluating:
@@ -51,7 +74,6 @@ public class BattleLogic : MonoBehaviour {
             case RoundPhase.shooting:
                 {
                     shootingPhase();
-                    //actualRoundPhase = RoundPhase.steady;
                     break;
                 }
             case RoundPhase.moving:
@@ -65,12 +87,14 @@ public class BattleLogic : MonoBehaviour {
                     {
                         o.GetComponent<EnemyMove>().enemyMoving = true;
                     }
+                    setFightButtonActive();
                     actualRoundPhase = RoundPhase.steady;
                     break;
                 }
         }
     }
 
+    
     #region moving region
 
     Vector3 newPosition;
@@ -148,7 +172,7 @@ public class BattleLogic : MonoBehaviour {
     float pauseInterval = 0.5f;
     float pauseTimer;
 
-    float odds = 20; // THIS HAVE TO CHANGE. GAMEPLAY IMPORTANT
+    
 
     int evaluationCounter;
 
@@ -187,10 +211,13 @@ public class BattleLogic : MonoBehaviour {
     #endregion
 
     #region create board
-    public void restartBoard()
+    public void createBoard()
     {
+        energyOnStartWasted = false;
+        playerController.resetTempEnergy();
+        succesHits = 0;
         actualRoundPhase = RoundPhase.steady;
-        playerStartPosition = new Vector3(-2, 3.5f, 0);
+        playerStartPosition = new Vector3(-2f, 3.5f, 0);
         enemyStartPosition = new Vector3(2, 3.5f, 0);
         createGame();
     }
@@ -199,6 +226,7 @@ public class BattleLogic : MonoBehaviour {
     void createGame()
     {
         _player = (GameObject)Instantiate(player, playerStartPosition, Quaternion.identity);
+        _player.GetComponent<PlayerInFightHandler>().collision = false;
         createEnemies();
     }
 
@@ -214,14 +242,24 @@ public class BattleLogic : MonoBehaviour {
     #endregion
 
     #region buttons 
+
+    bool energyOnStartWasted;
     public void startFighting()
     {
+        if(!energyOnStartWasted)
+        {
+            energyOnStartWasted = true;
+            playerController.wasteEnergyOnStartBattle();
+        }
+        
+        fightButton.SetActive(false);
+        doubleEnergyButton.SetActive(false);
         Invoke("invokedStartFighting",0.6f);   
     }
 
     void invokedStartFighting()
     {
-        doubleEnergyButton.SetActive(false);
+        
         if (actualRoundPhase == RoundPhase.steady)
         {
             actualRoundPhase = RoundPhase.evaluating;
@@ -239,10 +277,17 @@ public class BattleLogic : MonoBehaviour {
         GetComponent<ScenesManager>().actualSceneState = SceneState.MainMenu;
     }
 
+    void setFightButtonActive()
+    {
+        fightButton.SetActive(true);
+    }
+
     #endregion
 
     void quitBattle()
     {
+        doubleEnergyButton.SetActive(false);
+        fightButton.SetActive(false);
         Destroy(_player);
         foreach (GameObject g in GameObject.FindGameObjectsWithTag("Enemy"))
         {

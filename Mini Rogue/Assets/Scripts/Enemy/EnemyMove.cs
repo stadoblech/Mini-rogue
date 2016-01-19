@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+﻿ using UnityEngine;
 using System.Collections;
 
 public class EnemyMove : MonoBehaviour {
@@ -13,13 +13,16 @@ public class EnemyMove : MonoBehaviour {
 
     public bool enemyMoving = false;
 
+    int roundCounter;
+
     void Start()
     {
         enemyMoving = false;
         player = GameObject.FindGameObjectWithTag("Player").transform;
         distanceToMove = Vector3.Distance(new Vector3(player.transform.position.x,0),new Vector3(transform.position.x,0))/3;
         newPosition = new Vector3(transform.position.x - distanceToMove, transform.position.y);
-        print(transform.position.x - distanceToMove);
+
+        roundCounter = 3;
     }
 	// Update is called once per frame
 	void Update () {
@@ -27,7 +30,6 @@ public class EnemyMove : MonoBehaviour {
         {
             moveEnemy();
         }
-
 	}
 
     public void moveEnemy()
@@ -38,7 +40,12 @@ public class EnemyMove : MonoBehaviour {
         {
             newPosition = new Vector3(transform.position.x - distanceToMove, transform.position.y);
             enemyMoving = false;
+            roundCounter--;
         }
+    }
 
+    public int getActualEnemyRound()
+    {
+        return roundCounter;
     }
 }

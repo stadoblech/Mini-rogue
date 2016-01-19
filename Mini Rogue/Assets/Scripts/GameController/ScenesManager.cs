@@ -4,43 +4,29 @@ using UnityEngine.UI;
 
 public enum SceneState
 {
-    FirstScene,MainMenu,First,Stats,Fight,PostFight
+    FirstScene,MainMenu,First,Stats,Fight,EvaluationScene,GameOverScene
 }
 
 [System.Serializable]
 public class Scene
 {
-    public GameObject[] buttons;
-    public GameObject[] texts;
+    public GameObject[] objects;
 
     public void disableButtons()
     {
-        foreach (GameObject b in buttons)
+        foreach (GameObject b in objects)
         {
             b.SetActive(false);
         }
-
-        foreach (GameObject t in texts)
-        {
-            t.SetActive(false);
-        }
-
     }
 
     public void enableButtons()
     {
-        foreach (GameObject b in buttons)
+        foreach (GameObject b in objects)
         {
             b.SetActive(true);
         }
-
-        foreach (GameObject t in texts)
-        {
-            t.SetActive(true);
-        }
     }
-
-
 }
 
 
@@ -54,14 +40,18 @@ public class ScenesManager : MonoBehaviour {
     public Scene mainMenu;
     public Scene StatsScene;
     public Scene fightScene;
+    public Scene evaluationScene;
 
     Camera mainCamera;
 
     bool battleCreated;
 
+    PlayerController playerController;
 	void Start () {
         battleCreated = false;
         mainCamera = Camera.main;
+
+        playerController = GetComponent<PlayerController>();
 
         if(!sceneDebug)
         {
@@ -94,11 +84,10 @@ public class ScenesManager : MonoBehaviour {
                 }
             case SceneState.Fight:
                 {
-                    
                     if (!battleCreated)
                     {
                         fightScene.enableButtons();
-                        GetComponent<BattleLogic>().restartBoard();
+                        GetComponent<BattleLogic>().createBoard();
                         battleCreated = true;
                     }
                     break;
@@ -106,6 +95,26 @@ public class ScenesManager : MonoBehaviour {
             case SceneState.Stats:
                 {
                     StatsScene.enableButtons();
+                    break;
+                }
+            case SceneState.EvaluationScene:
+                {
+                    /// !!! IMPORTANT !!!
+                    /// NextBattleButton must have index 0
+                    /// NextLevelButton must have index 1
+                    ///
+
+                    evaluationScene.objects[0].SetActive(true);
+
+                    if(playerController.nextLevelEnergyRequirements < playerController.actualEnergy)
+                    {
+                        evaluationScene.objects[1].SetActive(true);
+                    }
+
+                    break;
+                }
+            case SceneState.GameOverScene:
+                {
                     break;
                 }
         }
@@ -142,6 +151,7 @@ public class ScenesManager : MonoBehaviour {
         mainMenu.disableButtons();
         firstScene.disableButtons();
         StatsScene.disableButtons();
+        evaluationScene.disableButtons();
     }
 
 
