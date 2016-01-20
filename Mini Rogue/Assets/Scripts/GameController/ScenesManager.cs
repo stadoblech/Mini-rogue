@@ -45,11 +45,9 @@ public class ScenesManager : MonoBehaviour {
 
     Camera mainCamera;
 
-    bool battleCreated;
-
     PlayerController playerController;
+
 	void Start () {
-        battleCreated = false;
         mainCamera = Camera.main;
 
         playerController = GetComponent<PlayerController>();
@@ -77,27 +75,6 @@ public class ScenesManager : MonoBehaviour {
                     firstScene.enableButtons();
                     break;
                 }
-
-            case SceneState.MainMenu:
-                {
-                    mainMenu.enableButtons();
-                    break;
-                }
-            case SceneState.Fight:
-                {
-                    if (!battleCreated)
-                    {
-                        fightScene.enableButtons();
-                        GetComponent<BattleLogic>().createBoard();
-                        battleCreated = true;
-                    }
-                    break;
-                }
-            case SceneState.Stats:
-                {
-                    StatsScene.enableButtons();
-                    break;
-                }
             case SceneState.EvaluationScene:
                 {
                     /// !!! IMPORTANT !!!
@@ -106,22 +83,16 @@ public class ScenesManager : MonoBehaviour {
                     ///
 
                     evaluationScene.objects[0].SetActive(true);
+                    evaluationScene.objects[2].SetActive(true);
+                    evaluationScene.objects[3].SetActive(true);
 
-                    if(playerController.nextLevelEnergyRequirements < playerController.actualEnergy)
+                    if (playerController.nextLevelEnergyRequirements < playerController.actualEnergy)
                     {
                         evaluationScene.objects[1].SetActive(true);
+                    }else
+                    {
+                        evaluationScene.objects[1].SetActive(false);
                     }
-
-                    break;
-                }
-
-            case SceneState.LevelUpScene:
-                {
-                    levelUpScene.enableButtons();
-                    break;
-                }
-            case SceneState.GameOverScene:
-                {
                     break;
                 }
         }
@@ -133,6 +104,7 @@ public class ScenesManager : MonoBehaviour {
     public void StartGame()
     {
         disableAllButtons();
+        mainMenu.enableButtons();
         actualSceneState = SceneState.MainMenu;
     }
     
@@ -142,30 +114,39 @@ public class ScenesManager : MonoBehaviour {
     public void startFight()
     {
         disableAllButtons();
+
+        fightScene.enableButtons();
+        GetComponent<BattleLogic>().createBoard();
+
         actualSceneState = SceneState.Fight;
     }
 
     public void activateStatsScene()
     {
+        
         disableAllButtons();
+        StatsScene.enableButtons();
         actualSceneState = SceneState.Stats;
     }
 
+    /*
     public void continueAfterLevelUpScreen()
     {
         disableAllButtons();
+        StatsScene.enableButtons();
         actualSceneState = SceneState.Stats;
     }
+    */
 
     public void activateLevelUpScene()
     {
         disableAllButtons();
+        levelUpScene.enableButtons();
         actualSceneState = SceneState.LevelUpScene;
     }
 
     void disableAllButtons()
     {
-        battleCreated = false; /// care for this boolean here. Can cause problems. maybe it will need to shitf somewhere else
         fightScene.disableButtons();
         mainMenu.disableButtons();
         firstScene.disableButtons();
@@ -173,6 +154,4 @@ public class ScenesManager : MonoBehaviour {
         evaluationScene.disableButtons();
         levelUpScene.disableButtons();
     }
-
-
 }

@@ -3,6 +3,7 @@ using System.Collections;
 
 public class PlayerController : MonoBehaviour {
 
+    public GameObject repairButton;
 
     public int nextLevelEnergyBase;
     public int nextLevelEnergyRequirements
@@ -14,6 +15,9 @@ public class PlayerController : MonoBehaviour {
         }
     }
 
+    /// <summary>
+    /// todo
+    /// </summary>
     public int lives;
 
     public int actualEnergy
@@ -46,7 +50,7 @@ public class PlayerController : MonoBehaviour {
     public void createPlayerStats()
     {
         level = 1;
-        actualEnergy = 5;
+        actualEnergy = 10;
     }
 
     public void addEnemyDeadRound(int r)
@@ -80,5 +84,11 @@ public class PlayerController : MonoBehaviour {
             tempEnergy = en;
             lowEnergyMode = true;
         }
+    }
+
+    public void repairShipButton()
+    {
+        actualEnergy = 0;
+        repairButton.SetActive(false);
     }
 }
